@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>client/src/App.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="API.html">API</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#App">App</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#findAll">findAll</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#findOne">findOne</a></span></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#imageModel">imageModel</a></span></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#ImageModel">ImageModel</a></span></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#imageRoutes">imageRoutes</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#insert">insert</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">client/src/App.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect } from "react";
+import API from './Api'
+import "./App.css";
+
+/**
+ *
+ * @returns {Function} - App function
+ */
+const App = () => {
+  const [data, setData] = useState([]);
+  const [error, setError] = useState(false);
+  const [ignore, setIgnore] = useState(false); // flag use to enforce single exec of setData
+  const [picId, setPicId] = useState(Math.floor(Math.random() * 20) + 1); // generate random number 
+  const [memoizedGetImage, setMemoizedGetImage] = useState(() => { }); // store function
+
+  // create new API instance
+  const api = new API({ url: '' })
+  // create route
+  api.createRoute({ name: 'images' })
+
+  /**
+   * get all images
+   */
+  const getImages = async () => {
+    const response = await api.endpoints.images.getAll();
+    if (response) {
+      setData(response.data);
+    } else {
+      setError(api.getErrorMsg().message);
+    }
+  };
+
+  useEffect(() => {
+    /**
+     *get image from server by id
+     * @param {Number} picId
+     */
+    const getImage = async (picId) => {
+      try {
+        const response = await api.endpoints.images.getOne({ id: picId })
+        if (ignore) return
+        if (response) {
+          setData(response.data);
+        } else {
+          setError(api.getErrorMsg().message);
+        }
+      } catch (error) {
+        setError(error);
+      }
+    }
+    getImage(picId);
+    setIgnore(true)
+    setMemoizedGetImage(() => getImage)
+  }, []);
+
+  /**
+   * get base64 image sources
+   * @returns {Object} imageSrcs - image sources
+   */
+  const getImageSources = () => {
+    let imageSrcs = [];
+    if (data.length) {
+      imageSrcs = data.map(img => {
+        if (!img.image) return false;
+        const buf = img.image.data;
+        return [...imageSrcs, `data:image/png;base64,${arrayBufferToBase64(buf)}`];
+      });
+    }
+    return imageSrcs;
+  };
+
+  /**
+   * Convert buffer array to string
+   * @param {String} buf
+   * @returns {String} base-64 encoded ASCII string
+   */
+  const arrayBufferToBase64 = buf => {
+    var binary = "";
+    var bytes = new Uint8Array(buf);
+    var len = bytes.byteLength;
+    for (var i = 0; i &lt; len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  };
+
+  const imgSources = getImageSources();
+  let images
+  if (imgSources.length) {
+    images = imgSources.map((src, ix) => {
+      return (
+        &lt;React.Fragment key={ix}>
+          &lt;img width={400} height={400} src={src} alt="thumbnail" /> 
+          &lt;hr />
+        &lt;/React.Fragment>
+      );
+    });
+  }
+
+  return (
+    &lt;div className="App" style={{ backgroundColor: "#b9ccef" }}>
+      &lt;div>
+        &lt;button onClick={() => memoizedGetImage(picId)}>Get single picture&lt;/button>
+        &lt;input
+          type="number"
+          max={1000}
+          min={1}
+          value={picId}
+          onChange={e => setPicId(e.target.value)}
+          placeholder="input id"
+        />
+      &lt;/div>
+      &lt;div>
+        &lt;button onClick={getImages}>Get all pictures&lt;/button>
+      &lt;/div>
+      &lt;h1>Curtis, fetched data shown in console&lt;/h1>
+      {images}
+      {error ? &lt;span>{error}&lt;/span> : ""}
+    &lt;/div>
+  );
+};
+
+export default App;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Sat Dec 14 2019 01:00:36 GMT+0900 (Japan Standard Time) using the Minami theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

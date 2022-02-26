@@ -1,0 +1,25 @@
+# Dependency directories
+node_modules/
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+.env.test
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+package-lock.json
+client/yarn.lock
+yarn-error.log
+server/uploads/*
+server/resources/
+client/yarn.lock
+client/package-lock.json
+.vscode/
+server/yarn.lock
