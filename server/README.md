@@ -77,7 +77,7 @@ MYSQL_DB=<database_name>
 # sequelize
 OPERATOR_ALIASES=false
 FREEZE_TABLENAME=true
-PORT=<database_port>
+PORT=8007
 MAX=500
 MIN=0
 ACQUIRE=30000
